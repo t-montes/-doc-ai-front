@@ -1,0 +1,107 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  background-color: #333;
+  font-family: Arial, sans-serif;
+}
+
+.full-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #333;
+}
+
+.content-container {
+  text-align: center;
+  background-color: #444;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.logo {
+  width: 220px;
+}
+
+h1 {
+  font-size: 24px;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  position: relative;
+  width: 150px;
+  text-align: center;
+}
+
+.upload-button input {
+  display: none;
+}
+
+.upload-icon {
+  margin-right: 8px;
+}
+
+p {
+  margin-top: 15px;
+  color: #bbb;
+  font-size: 16px;
+}
+
+.progress-checkboxes {
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.progress-checkboxes div {
+  display: flex;
+  align-items: center;
+  color: #bbb;
+}
+
+.checkbox-on {
+  color: #fff !important;
+}
+
+.progress-checkboxes input[type="checkbox"] {
+  margin-left: auto;
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  accent-color: #4caf50;
+}
+
+.status-message {
+  margin-top: 15px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.loadid-message {
+  font-size: 16px;
+  margin: 15px 0 0 0;
+  text-decoration: underline;
+  color: #bbb;
+}

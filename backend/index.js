@@ -89,7 +89,7 @@ app.get('/check-bq/:column/:value', async (req, res) => {
         if (rows.length > 0) {
             res.json(rows[0]);  // Return the last created row with the specified value
         } else {
-            res.status(404).json({ error: 'No data found' });
+            res.status(404).json({ error: 'No se encontraron registros' });
         }
     } catch (error) {
         console.error('Error querying BigQuery:', error);

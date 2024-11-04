@@ -6,6 +6,8 @@ import pcbLogo from '/bot-logo.png';
 const App: React.FC = () => {
   const [message, setMessage] = useState('');
   const [idShow, setIdShow] = useState('');
+  const [fileInProgress, setFileInProgress] = useState(false);
+  const [isError, setIsError] = useState(false); // Added to track error state
   const [progress, setProgress] = useState({
     uploaded: false,
     createdInBigQuery: false,
@@ -13,6 +15,8 @@ const App: React.FC = () => {
   });
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFileInProgress(true);
+    setIsError(false);
     setProgress({
       uploaded: false,
       createdInBigQuery: false,
@@ -27,7 +31,6 @@ const App: React.FC = () => {
       formData.append('file', file);
 
       try {
-        // First Step: Upload to Google Cloud Storage
         const response = await fetch('http://localhost:3000/upload', {
           method: 'POST',
           body: formData
@@ -37,7 +40,6 @@ const App: React.FC = () => {
         if (response.ok) {
           setProgress((prev) => ({ ...prev, uploaded: true }));
           setMessage('Creando en BigQuery...');
-
           pollBigQueryStatus(result.fileName);
         } else {
           throw new Error(result.error);
@@ -45,20 +47,23 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Error al subir el archivo:', error);
         setMessage('Error al procesar el archivo');
+        setIsError(true);
+        setFileInProgress(false);
       }
     } else {
       setMessage('No se seleccionó un archivo');
+      setIsError(true);
+      setFileInProgress(false);
     }
   };
 
-  // Poll BigQuery status every 5 seconds
   const pollBigQueryStatus = (name: string) => {
     let first = true;
     let loadId = '';
     const interval = setInterval(async () => {
       console.log('Polling BigQuery status...');
       try {
-        const ending = (loadId == '') ? `name/${name}` : `id/${loadId}`;
+        const ending = (loadId === '') ? `name/${name}` : `id/${loadId}`;
         const response = await fetch(`http://localhost:3000/check-bq/${ending}`);
         if (response.ok) {
           const result = await response.json();
@@ -72,28 +77,37 @@ const App: React.FC = () => {
           if (result.status === 'processed') {
             setProgress((prev) => ({ ...prev, finalizedInBigQuery: true }));
             setMessage('Finalizado con Éxito');
+            setFileInProgress(false); // Enable file input again
             clearInterval(interval);
           }
+        } else if (response.status !== 404) { // Handle non-404 errors
+          throw new Error('Error con BigQuery');
         }
-      } catch (error) {
-        console.log('Data not found, retrying...');
+      } catch (error: any) {
+        console.log('Error:', error);
+        if (error.error !== 'No se encontraron registros') {
+          setMessage('Error al procesar en BigQuery');
+          setIsError(true);
+          setFileInProgress(false); // Enable file input again for terminal errors
+          clearInterval(interval);
+        }
       }
     }, 1000);
   };
-  
+
   return (
     <div className="full-container">
       <div className="content-container">
         <img src={pcbLogo} alt="Procibernética" className="logo" />
         <h1>Subir archivo ZIP con facturas</h1>
         <div className="button-wrapper">
-          <label className="upload-button">
+          <label className={`upload-button ${fileInProgress ? 'disabled' : ''}`}>
             <FiUpload size={20} className="upload-icon" />
-            <input type="file" onChange={handleFileChange} />
+            <input type="file" onChange={handleFileChange} disabled={fileInProgress} />
             Escoger archivo
           </label>
         </div>
-        {message && <p className="status-message">{message}</p>}
+        {message && <p className={`status-message ${isError ? 'error' : ''}`}>{message}</p>}
         <div className="progress-checkboxes">
           <div className={progress.uploaded ? "checkbox-on" : ""}>
             <label>Archivo subido a Cloud Storage</label>
@@ -112,6 +126,6 @@ const App: React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
 export default App;

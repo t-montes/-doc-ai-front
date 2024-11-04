@@ -3,6 +3,8 @@ import './App.css';
 import { FiUpload } from 'react-icons/fi';
 import pcbLogo from '/bot-logo.png';
 
+const HOST = 'http://localhost:3000';
+
 const App: React.FC = () => {
   const [message, setMessage] = useState('');
   const [idShow, setIdShow] = useState('');
@@ -31,7 +33,7 @@ const App: React.FC = () => {
       formData.append('file', file);
 
       try {
-        const response = await fetch('http://localhost:3000/upload', {
+        const response = await fetch(`${HOST}/upload`, {
           method: 'POST',
           body: formData
         });
@@ -64,7 +66,7 @@ const App: React.FC = () => {
       console.log('Polling BigQuery status...');
       try {
         const ending = (loadId === '') ? `name/${name}` : `id/${loadId}`;
-        const response = await fetch(`http://localhost:3000/check-bq/${ending}`);
+        const response = await fetch(`${HOST}/check-bq/${ending}`);
         if (response.ok) {
           const result = await response.json();
           if (first) {

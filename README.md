@@ -27,6 +27,7 @@ cd front
 A new terminal will open, change the port to 80 and run the front:
 ```bash
 npm install
+nano src/App.tsx # change the HOST to the IP
 sudo npm run dev -- --host --port 80
 ```
 > To detach the tmux session, press `Ctrl+B` and then `D`. To reattach the session, run `tmux a -t ID`, for listing the sessions run `tmux ls`.

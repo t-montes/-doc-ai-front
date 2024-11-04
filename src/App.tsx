@@ -9,20 +9,21 @@ const App: React.FC = () => {
   const [message, setMessage] = useState('');
   const [idShow, setIdShow] = useState('');
   const [fileInProgress, setFileInProgress] = useState(false);
-  const [isError, setIsError] = useState(false); // Added to track error state
+  const [isError, setIsError] = useState(false); 
   const [progress, setProgress] = useState({
     uploaded: false,
-    createdInBigQuery: false,
-    finalizedInBigQuery: false
+    created: false,
+    finished: false
   });
+  const [loadingDots, setLoadingDots] = useState('');
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     setFileInProgress(true);
     setIsError(false);
     setProgress({
       uploaded: false,
-      createdInBigQuery: false,
-      finalizedInBigQuery: false
+      created: false,
+      finished: false
     });
     setIdShow('');
     const file = event.target.files?.[0];
@@ -41,7 +42,7 @@ const App: React.FC = () => {
         const result = await response.json();
         if (response.ok) {
           setProgress((prev) => ({ ...prev, uploaded: true }));
-          setMessage('Creando en BigQuery...');
+          setMessage('Creando en BigQuery');
           pollBigQueryStatus(result.fileName);
         } else {
           throw new Error(result.error);
@@ -62,6 +63,7 @@ const App: React.FC = () => {
   const pollBigQueryStatus = (name: string) => {
     let first = true;
     let loadId = '';
+    let dotCount = 0;
     const interval = setInterval(async () => {
       console.log('Polling BigQuery status...');
       try {
@@ -72,17 +74,17 @@ const App: React.FC = () => {
           if (first) {
             loadId = result.id;
             setIdShow(result.id);
-            setProgress((prev) => ({ ...prev, createdInBigQuery: true }));
-            setMessage('Analizando Facturas...');
+            setProgress((prev) => ({ ...prev, created: true }));
+            setMessage('Analizando Facturas');
             first = false;
           }
           if (result.status === 'processed') {
-            setProgress((prev) => ({ ...prev, finalizedInBigQuery: true }));
+            setProgress((prev) => ({ ...prev, finished: true }));
             setMessage('Finalizado con Éxito');
-            setFileInProgress(false); // Enable file input again
+            setFileInProgress(false);
             clearInterval(interval);
           }
-        } else if (response.status !== 404) { // Handle non-404 errors
+        } else if (response.status !== 404) {
           throw new Error('Error con BigQuery');
         }
       } catch (error: any) {
@@ -90,10 +92,13 @@ const App: React.FC = () => {
         if (error.error !== 'No se encontraron registros') {
           setMessage('Error al procesar en BigQuery');
           setIsError(true);
-          setFileInProgress(false); // Enable file input again for terminal errors
+          setFileInProgress(false);
           clearInterval(interval);
         }
       }
+      
+      dotCount = dotCount%3 + 1;
+      setLoadingDots('.'.repeat(dotCount));
     }, 1000);
   };
 
@@ -109,19 +114,19 @@ const App: React.FC = () => {
             Escoger archivo
           </label>
         </div>
-        {message && <p className={`status-message ${isError ? 'error' : ''}`}>{message}</p>}
+        {message && <p className={`status-message ${isError ? 'error' : ''}`}>{message}{fileInProgress && loadingDots}</p>} {/* Include loading dots */}
         <div className="progress-checkboxes">
           <div className={progress.uploaded ? "checkbox-on" : ""}>
             <label>Archivo subido a Cloud Storage</label>
             <input type="checkbox" checked={progress.uploaded} readOnly />
           </div>
-          <div className={progress.createdInBigQuery ? "checkbox-on" : ""}>
+          <div className={progress.created ? "checkbox-on" : ""}>
             <label>Cargue creado</label>
-            <input type="checkbox" checked={progress.createdInBigQuery} readOnly />
+            <input type="checkbox" checked={progress.created} readOnly />
           </div>
-          <div className={progress.finalizedInBigQuery ? "checkbox-on" : ""}>
+          <div className={progress.finished ? "checkbox-on" : ""}>
             <label>Facturas procesadas en BigQuery</label>
-            <input type="checkbox" checked={progress.finalizedInBigQuery} readOnly />
+            <input type="checkbox" checked={progress.finished} readOnly />
           </div>
         </div>
         {idShow && <p className="loadid-message">{idShow}</p>}

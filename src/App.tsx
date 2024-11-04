@@ -4,8 +4,8 @@ import { FiUpload } from 'react-icons/fi';
 import pcbLogo from '/bot-logo.png';
 
 const App: React.FC = () => {
-  const [message, setMessage] = useState<string>('');
-  const [loadId, setLoadId] = useState<string>('');
+  const [message, setMessage] = useState('');
+  const [idShow, setIdShow] = useState('');
   const [progress, setProgress] = useState({
     uploaded: false,
     createdInBigQuery: false,
@@ -18,6 +18,7 @@ const App: React.FC = () => {
       createdInBigQuery: false,
       finalizedInBigQuery: false
     });
+    setIdShow('');
     const file = event.target.files?.[0];
     if (file) {
       setMessage(`Subiendo archivo a GCS...`);
@@ -50,19 +51,22 @@ const App: React.FC = () => {
     }
   };
 
-  // Poll BigQuery status every 2 seconds
+  // Poll BigQuery status every 5 seconds
   const pollBigQueryStatus = (name: string) => {
     let first = true;
+    let loadId = '';
     const interval = setInterval(async () => {
       console.log('Polling BigQuery status...');
       try {
-        const response = await fetch(`http://localhost:3000/check-bq/${name}`);
+        const ending = (loadId == '') ? `name/${name}` : `id/${loadId}`;
+        const response = await fetch(`http://localhost:3000/check-bq/${ending}`);
         if (response.ok) {
           const result = await response.json();
           if (first) {
-            setLoadId(result.id);
+            loadId = result.id;
+            setIdShow(result.id);
             setProgress((prev) => ({ ...prev, createdInBigQuery: true }));
-            setMessage(`Analizando Facturas...`);
+            setMessage('Analizando Facturas...');
             first = false;
           }
           if (result.status === 'processed') {
@@ -104,7 +108,7 @@ const App: React.FC = () => {
             <input type="checkbox" checked={progress.finalizedInBigQuery} readOnly />
           </div>
         </div>
-        {loadId && <p className="loadid-message">{loadId}</p>}
+        {idShow && <p className="loadid-message">{idShow}</p>}
       </div>
     </div>
   );

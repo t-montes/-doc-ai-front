@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const morgan = require('morgan');
 const cors = require('cors');
 const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
@@ -16,6 +17,7 @@ const bigquery = new BigQuery({ projectId, keyFilename });
 
 const app = express();
 app.use(cors());
+app.use(morgan('tiny'));
 const upload = multer({ dest: 'tmp/' });
 let bqColumns = [];
 
@@ -24,7 +26,7 @@ async function init() {
     try {
         const [table] = await bigquery.dataset(bqDatasetName).table('DataLoad').getMetadata();
         bqColumns = table.schema.fields.map(field => field.name);
-        console.log('Allowed columns initialized:', bqColumns);
+        console.log('BQ columns initialized:', bqColumns);
     } catch (error) {
         console.error('Error retrieving schema during initialization:', error);
         process.exit(1);
@@ -59,7 +61,6 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
 app.get('/check-bq/:column/:value', async (req, res) => {
     const { column, value } = req.params;
-    console.log(`Checking BigQuery for ${column} = ${value}`);
 
     if (!bqColumns.includes(column))
         return res.status(400).json({ error: 'Invalid column specified' });

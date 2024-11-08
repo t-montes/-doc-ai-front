@@ -73,12 +73,12 @@ const App: React.FC = () => {
           const result = await response.json();
           if (first) {
             loadId = result.id;
-            setIdShow(result.id);
             setProgress((prev) => ({ ...prev, created: true }));
             setMessage('Analizando Facturas');
             first = false;
           }
           if (result.status === 'processed') {
+            setIdShow(result.id);
             setProgress((prev) => ({ ...prev, finished: true }));
             setMessage('Finalizado con Éxito');
             setFileInProgress(false);
@@ -129,7 +129,11 @@ const App: React.FC = () => {
             <input type="checkbox" checked={progress.finished} readOnly />
           </div>
         </div>
-        {idShow && <p className="loadid-message">{idShow}</p>}
+        {idShow && <div className="loadid-message" >
+          <a href={`https://lookerstudio.google.com/u/1/reporting/f82bbc08-e221-4a9e-bfb8-0a5b7ecbfc13/page/zJ76D?params=%7B%22df59%22:%22include%25EE%2580%25800%25EE%2580%2580IN%25EE%2580%2580${idShow}%22%7D`}>
+          Ver en Looker
+          </a>
+        </div>}
       </div>
     </div>
   );

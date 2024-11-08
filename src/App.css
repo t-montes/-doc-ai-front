@@ -100,10 +100,12 @@ p {
 }
 
 .loadid-message {
+  margin: 15px 0 0 0; /* top right bottom left */
+}
+
+.loadid-message a {
   font-size: 16px;
-  margin: 15px 0 0 0;
   text-decoration: underline;
-  color: #bbb;
 }
 
 .upload-button {
